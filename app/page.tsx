@@ -8,6 +8,7 @@ import AxiomBox from '@/components/AxiomBox'
 import DataGrid from '@/components/DataGrid'
 import LiquidFractureMoE from '@/components/LiquidFractureMoE'
 import QuantumSoulCircuit from '@/components/QuantumSoulCircuit'
+import LiveTelemetry from '@/components/LiveTelemetry'
 
 function Prose({ children }: { children: React.ReactNode }) {
   return (
@@ -431,11 +432,48 @@ GET /api/v2/router/trace?n=10
           </TerminalBlock>
 
           {/* ────────────────────────────────────────────────────
-              SECTION 06 — DEPLOYMENT PROTOCOL
+              SECTION 06 — LIVE TELEMETRY (IONOS)
+          ──────────────────────────────────────────────────── */}
+          <SectionHeader
+            id="live-telemetry"
+            index="06"
+            title="LIVE INFRASTRUCTURE TELEMETRY"
+            subtitle="Classified real-time uplink to the IONOS control plane. DNS zones and domain inventory streamed directly from api.hosting.ionos.com over an encrypted channel."
+          />
+
+          <AxiomBox source="Ops Doctrine, Weaver Field Manual">
+            What you see below is not simulation. This is a live signal from the field.
+            Every record is a real asset — a zone, a domain, a piece of the network. When it
+            updates, the universe changes.
+          </AxiomBox>
+
+          <Prose>
+            The panel below reads directly from the <strong style={{ color: '#00f2ff' }}>IONOS
+            Hosting API</strong>. Credentials are injected server-side only; the browser never
+            sees the secret. Every request is proxied through{' '}
+            <code style={{ color: '#bc13fe' }}>/api/ionos/*</code> route handlers using the{' '}
+            <code style={{ color: '#bc13fe' }}>X-API-Key</code> header scheme with the prefix.secret
+            format.
+          </Prose>
+
+          <TerminalBlock title="IONOS_UPLINK.config">
+{`ENDPOINT:      https://api.hosting.ionos.com
+AUTH:          X-API-Key: \${IONOS_API_PREFIX}.\${IONOS_API_SECRET}
+CACHE:         no-store (live pull every refresh)
+PROXY:         /api/ionos/zones     → GET /dns/v1/zones
+               /api/ionos/domains   → GET /domains/v1/domainitems
+RUNTIME:       nodejs server route handlers
+SECRET EXPOSURE: NONE (server-side only)`}
+          </TerminalBlock>
+
+          <LiveTelemetry />
+
+          {/* ────────────────────────────────────────────────────
+              SECTION 07 — DEPLOYMENT PROTOCOL
           ──────────────────────────────────────────────────── */}
           <SectionHeader
             id="deployment"
-            index="06"
+            index="07"
             title="DEPLOYMENT PROTOCOL"
             subtitle="Containerized deployment, environment setup, and system verification."
           />

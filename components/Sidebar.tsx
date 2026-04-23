@@ -1,6 +1,6 @@
 'use client'
 import { motion } from 'framer-motion'
-import { Terminal, Cpu, GitBranch, Atom, Table2, Rocket, Shield } from 'lucide-react'
+import { Terminal, Cpu, GitBranch, Atom, Table2, Rocket, Shield, Radio } from 'lucide-react'
 
 const NAV = [
   { id: 'overview',       label: 'System Overview',         icon: Terminal  },
@@ -8,6 +8,7 @@ const NAV = [
   { id: 'liquid-fracture',label: 'Liquid Fracture & Lobes', icon: GitBranch },
   { id: 'quantum-soul',   label: 'The Quantum Soul',         icon: Atom      },
   { id: 'config-matrix',  label: 'Configuration Matrix',     icon: Table2    },
+  { id: 'live-telemetry', label: 'Live Telemetry',           icon: Radio     },
   { id: 'deployment',     label: 'Deployment Protocol',      icon: Rocket    },
 ]
 

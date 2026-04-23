@@ -2,6 +2,10 @@
 // that would leak the secret.
 
 const BASE = 'https://api.hosting.ionos.com'
+const REQUEST_TIMEOUT_MS = 10_000
+
+// Allowed API path prefixes — reject anything outside this whitelist.
+const ALLOWED_PATHS = ['/dns/v1/', '/domains/v1/']
 
 function apiKey(): string {
   const prefix = process.env.IONOS_API_PREFIX
@@ -12,16 +16,37 @@ function apiKey(): string {
   return `${prefix}.${secret}`
 }
 
+function validatePath(path: string): void {
+  // Prevent path traversal and restrict to known endpoints.
+  const normalized = decodeURIComponent(path).replace(/\/+/g, '/')
+  if (normalized.includes('..') || normalized.includes('\\')) {
+    throw new Error('Invalid API path')
+  }
+  if (!ALLOWED_PATHS.some(p => normalized.startsWith(p))) {
+    throw new Error(`Disallowed API path: ${normalized}`)
+  }
+}
+
 export async function ionosFetch(path: string, init?: RequestInit): Promise<Response> {
-  return fetch(`${BASE}${path}`, {
-    ...init,
-    headers: {
-      'X-API-Key': apiKey(),
-      Accept: 'application/json',
-      ...(init?.headers ?? {}),
-    },
-    cache: 'no-store',
-  })
+  validatePath(path)
+
+  const controller = new AbortController()
+  const timeout = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS)
+
+  try {
+    return await fetch(`${BASE}${path}`, {
+      ...init,
+      signal: controller.signal,
+      headers: {
+        'X-API-Key': apiKey(),
+        Accept: 'application/json',
+        ...(init?.headers ?? {}),
+      },
+      cache: 'no-store',
+    })
+  } finally {
+    clearTimeout(timeout)
+  }
 }
 
 export interface IonosError {
@@ -54,6 +79,9 @@ export async function ionosJson<T>(path: string): Promise<IonosResult<T>> {
     }
     return { ok: true, status: res.status, data: parsed as T }
   } catch (err) {
+    if (err instanceof Error && err.name === 'AbortError') {
+      return { ok: false, status: 0, message: 'Request timed out' }
+    }
     return {
       ok: false,
       status: 0,
